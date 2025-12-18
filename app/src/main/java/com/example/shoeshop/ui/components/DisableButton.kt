@@ -34,10 +34,10 @@ fun DisableButton(
             .height(48.dp),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            disabledContainerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.background,
-            disabledContentColor = MaterialTheme.colorScheme.background
+            containerColor = colorResource(id = R.color.Accent),
+            disabledContainerColor = colorResource(id = R.color.Accent),
+            contentColor = colorResource(id = R.color.Background),
+            disabledContentColor = colorResource(id = R.color.Background)
         )
     ) {
         Text(

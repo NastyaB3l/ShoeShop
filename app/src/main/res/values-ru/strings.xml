@@ -71,6 +71,11 @@
     <string name="Map">Карта</string>
     <string name="LoyaltyCard">Карта лояльности</string>
 
+    <string name="hello">Привет!</string>
+    <string name="email">Email</string>
+    <string name="pass">Пароль</string>
+    <string name="recovery">Воcстановить</string>
+    <string name="new_user">Вы впервые?</string>
     <string name="otp_verification">OTP проверка</string>
     <string name="check_email_for_code">Пожалуйста, проверьте свою электронную почту, чтобы увидеть код подтверждения</string>
     <string name="create">Создать пользователя</string>

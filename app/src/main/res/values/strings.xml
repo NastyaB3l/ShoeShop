@@ -70,6 +70,11 @@
     <string name="Map">Map</string>
     <string name="LoyaltyCard">Loyalty Card</string>
 
+    <string name="hello">Hello Again!</string>
+    <string name="email">Email Address</string>
+    <string name="pass">Password</string>
+    <string name="recovery">Recovery Password</string>
+    <string name="new_user">New User?</string>
     <string name="otp_verification">OTP Verification</string>
     <string name="check_email_for_code">Please check your email to see the verification code</string>
     <string name="create">Create Account</string>

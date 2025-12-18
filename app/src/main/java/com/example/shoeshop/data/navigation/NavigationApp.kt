@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
+import com.example.shoeshop.ui.screens.SignInScreen
 
 @Composable
 fun NavigationApp(navController: NavHostController) {
@@ -17,11 +18,30 @@ fun NavigationApp(navController: NavHostController) {
         composable("register") {
             RegisterAccountScreen(
                 onBackClick = { navController.popBackStack() },
-                onSignInClick = { /* ... */ },
-                onSignUpClick = { email -> // ИЗМЕНИТЕ: принимаем email
-                    // Передаем email как параметр
+                onSignInClick = { navController.navigate("sign_in") },
+                onSignUpClick = { email ->
                     navController.navigate("email_verification/$email")
                 }
+            )
+        }
+
+        composable("email_verification") {
+            EmailVerificationScreen(
+                email = "", // просто пустая строка
+                onSignInClick = {
+                    navController.navigate("sign_in")
+                },
+                onVerificationSuccess = {
+                    navController.navigate("sign_in")
+                }
+            )
+        }
+
+        composable("sign_in") {
+            SignInScreen(
+                onForgotPasswordClick = { navController.navigate("forgot_password") },
+                onSignInClick = { navController.navigate("home") },
+                onSignUpClick = { navController.navigate("sign_up") }
             )
         }
 
@@ -37,5 +57,7 @@ fun NavigationApp(navController: NavHostController) {
                 }
             )
         }
+
+        
     }
 }

@@ -65,13 +65,11 @@ fun EmailVerificationScreen(
 
     LaunchedEffect(verificationState) {
         when (verificationState) {
-            is VerificationState.Loading -> {
-                // Можно показать индикатор загрузки
-            }
             is VerificationState.Success -> {
                 when ((verificationState as VerificationState.Success).type) {
                     OtpType.EMAIL -> {
-                        onVerificationSuccess()
+                        // ПРОСТО ВЫЗЫВАЕМ onSignInClick() ВМЕСТО onVerificationSuccess()
+                        onSignInClick() // ← ВОТ ТУТ ПРОСТО ИЗМЕНИТЕ
                         viewModel.resetState()
                     }
                     OtpType.RECOVERY -> {
