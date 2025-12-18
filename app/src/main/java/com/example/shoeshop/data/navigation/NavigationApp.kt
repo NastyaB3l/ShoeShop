@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.shoeshop.ui.screens.ForgotPasswordScreen
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 import com.example.shoeshop.ui.screens.SignInScreen
 
@@ -60,6 +61,12 @@ fun NavigationApp(navController: NavHostController) {
 
         composable("home") {
             //HomeScreen({},{},{})
+        }
+
+        composable("forgot_password") {
+            ForgotPasswordScreen(
+                onNavigateToOtpVerification = { navController.navigate("reset_password") },
+            )
         }
     }
 }

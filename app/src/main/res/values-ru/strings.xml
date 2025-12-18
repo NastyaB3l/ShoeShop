@@ -71,6 +71,7 @@
     <string name="Map">Карта</string>
     <string name="LoyaltyCard">Карта лояльности</string>
 
+    <string name="recovery_code_sent">Мы отправили код восстановления пароля на вашу электронную почту.</string>
     <string name="hello">Привет!</string>
     <string name="email">Email</string>
     <string name="pass">Пароль</string>
