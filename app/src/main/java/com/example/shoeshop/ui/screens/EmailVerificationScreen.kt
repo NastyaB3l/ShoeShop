@@ -41,20 +41,17 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun EmailVerificationScreen(
+    email: String, // Добавьте параметр email
     onSignInClick: () -> Unit,
     onVerificationSuccess: () -> Unit,
     viewModel: EmailVerificationViewModel = viewModel()
 ) {
     var otpCode by remember { mutableStateOf("") }
-    var userEmail by remember { mutableStateOf("") }
+    var userEmail by remember { mutableStateOf(email) } // Используйте переданный email
     var resendEnabled by remember { mutableStateOf(true) }
     var countdown by remember { mutableStateOf(0) }
     val context = LocalContext.current
     val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        userEmail = getUserEmail(context)
-    }
 
     // Таймер для повторной отправки
     LaunchedEffect(countdown) {
@@ -163,7 +160,6 @@ fun EmailVerificationScreen(
                     }
                 }
             },
-            placeholder = { Text(stringResource(id = R.string.otp_placeholder)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -237,19 +233,6 @@ fun EmailVerificationScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Кнопка проверки OTP
-        DisableButton(
-            text = stringResource(id = R.string.verify),
-            enabled = otpCode.length == 6 && userEmail.isNotEmpty(),
-            onClick = {
-                if (otpCode.length == 6 && userEmail.isNotEmpty()) {
-                    viewModel.verifyEmailOtp(userEmail, otpCode) // Используем email метод
-                }
-            },
-            textStyle = customTypography.displayMedium
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // Ссылка для возврата к входу
         Row(

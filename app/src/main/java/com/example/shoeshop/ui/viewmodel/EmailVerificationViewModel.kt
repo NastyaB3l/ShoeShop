@@ -1,37 +1,27 @@
-// EmailVerificationViewModel.kt
 package com.example.shoeshop.ui.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myfirstproject.data.model.*
+import com.example.myfirstproject.data.model.VerifyOtpRequest
+import com.example.shoeshop.data.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
-import com.example.shoeshop.data.RetrofitInstance
 
 class EmailVerificationViewModel : ViewModel() {
-
-    // Общее состояние для обоих типов
     private val _verificationState = MutableStateFlow<VerificationState>(VerificationState.Idle)
     val verificationState: StateFlow<VerificationState> = _verificationState
 
-    // Отдельное состояние для recovery (если нужны разные данные)
     private val _recoveryState = MutableStateFlow<RecoveryState?>(null)
     val recoveryState: StateFlow<RecoveryState?> = _recoveryState
 
-    /**
-     * Верификация OTP для подтверждения email
-     */
     fun verifyEmailOtp(email: String, otpCode: String) {
         verifyOtpInternal(email, otpCode, OtpType.EMAIL)
     }
 
-    /**
-     * Верификация OTP для восстановления пароля
-     */
     fun verifyRecoveryOtp(email: String, otpCode: String) {
         verifyOtpInternal(email, otpCode, OtpType.RECOVERY)
     }
@@ -47,30 +37,28 @@ class EmailVerificationViewModel : ViewModel() {
                             VerifyOtpRequest(
                                 email = email,
                                 token = otpCode,
-                                type = "email"
+                                type = "signup" // Supabase использует "signup", а не "email"
                             )
                         )
 
                         if (response.isSuccessful) {
                             response.body()?.let { verifyResponse ->
-                                Log.v("verifyEmailOtp", "Email verified successfully for: ${verifyResponse.user.email}")
+                                Log.v("verifyEmailOtp", "Email verified successfully")
                                 _verificationState.value = VerificationState.Success(
                                     type = OtpType.EMAIL,
                                     data = verifyResponse
                                 )
                             } ?: run {
-                                _verificationState.value = VerificationState.Error(
-                                    "Empty response"
-                                )
+                                _verificationState.value = VerificationState.Error("Empty response")
                             }
                         } else {
                             val errorMessage = parseVerificationError(response.code(), response.message(), otpType)
                             _verificationState.value = VerificationState.Error(errorMessage)
-                            Log.e("verifyEmailOtp", "Error code: ${response.code()}, message: ${response.message()}")
                         }
                     }
 
                     OtpType.RECOVERY -> {
+                        // Проверьте правильность endpoint - возможно должно быть что-то другое
                         val response = RetrofitInstance.userManagementService.verifyRecoveryOtp(
                             VerifyOtpRequest(
                                 email = email,
@@ -82,27 +70,20 @@ class EmailVerificationViewModel : ViewModel() {
                         if (response.isSuccessful) {
                             response.body()?.let { recoveryResponse ->
                                 Log.v("verifyRecoveryOtp", "Recovery OTP verified successfully")
-
-                                // Устанавливаем общее состояние успеха
                                 _verificationState.value = VerificationState.Success(
                                     type = OtpType.RECOVERY,
                                     data = recoveryResponse
                                 )
-
-                                // Дополнительно сохраняем recovery-specific данные
                                 _recoveryState.value = RecoveryState(
                                     resetToken = recoveryResponse.reset_token,
                                     email = email
                                 )
                             } ?: run {
-                                _verificationState.value = VerificationState.Error(
-                                    "Empty recovery response"
-                                )
+                                _verificationState.value = VerificationState.Error("Empty recovery response")
                             }
                         } else {
                             val errorMessage = parseVerificationError(response.code(), response.message(), otpType)
                             _verificationState.value = VerificationState.Error(errorMessage)
-                            Log.e("verifyRecoveryOtp", "Error code: ${response.code()}, message: ${response.message()}")
                         }
                     }
                 }
@@ -147,13 +128,11 @@ class EmailVerificationViewModel : ViewModel() {
     }
 }
 
-// Типы OTP
 enum class OtpType {
-    EMAIL, // Подтверждение email
-    RECOVERY // Восстановление пароля
+    EMAIL,
+    RECOVERY
 }
 
-// Общее состояние верификации
 sealed class VerificationState {
     object Idle : VerificationState()
     object Loading : VerificationState()
@@ -164,7 +143,6 @@ sealed class VerificationState {
     data class Error(val message: String) : VerificationState()
 }
 
-// Специфичное состояние для recovery
 data class RecoveryState(
     val resetToken: String?,
     val email: String

@@ -1,10 +1,5 @@
-// screens/RegisterAccountScreen.kt
 package com.example.shoeshop.ui.screens
 
-import SignUpState
-import SignUpViewModel
-import android.graphics.drawable.Drawable
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,10 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myfirstproject.data.model.SignUpRequest
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.shoeshop.R
 import com.example.shoeshop.ui.components.*
 import com.example.shoeshop.ui.theme.ShoeShopTheme
+import com.example.shoeshop.ui.viewmodel.SignUpViewModel // ИЗМЕНИТЕ
+import com.example.shoeshop.ui.viewmodel.SignUpState // ИЗМЕНИТЕ
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +32,9 @@ fun RegisterAccountScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onSignInClick: () -> Unit,
-    onSignUpClick: () -> Unit,
-    viewModel: SignUpViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    onSignUpClick: (email: String) -> Unit,
+    viewModel: SignUpViewModel = viewModel()
 ) {
-    // Состояния полей
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -46,18 +42,13 @@ fun RegisterAccountScreen(
 
     val signUpState by viewModel.signUpState.collectAsStateWithLifecycle()
 
-    // Обработка состояний регистрации
     LaunchedEffect(signUpState) {
         when (signUpState) {
             is SignUpState.Success -> {
-                onSignUpClick()
+                // Передаем email при навигации
+                onSignUpClick(email) // Измените эту строку
                 viewModel.resetState()
             }
-
-            is SignUpState.Error -> {
-                viewModel.resetState()
-            }
-
             else -> {}
         }
     }
@@ -65,11 +56,9 @@ fun RegisterAccountScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top,
     ) {
-        // ТОЛЬКО кнопка назад сверху
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,8 +78,6 @@ fun RegisterAccountScreen(
             }
         }
 
-
-        // Основной контент
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,7 +85,6 @@ fun RegisterAccountScreen(
                 .padding(top = 16.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Заголовок "Регистрация" - по центру
             Text(
                 text = stringResource(id = R.string.Register),
                 style = MaterialTheme.typography.headlineMedium.copy(
@@ -107,10 +93,9 @@ fun RegisterAccountScreen(
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 8.dp),
-                textAlign = TextAlign.Center // Добавьте это для центрирования текста
+                textAlign = TextAlign.Center
             )
 
-            // Подзаголовок
             Text(
                 text = stringResource(id = R.string.details),
                 style = MaterialTheme.typography.bodyLarge.copy(
@@ -120,7 +105,17 @@ fun RegisterAccountScreen(
                 modifier = Modifier.padding(bottom = 40.dp)
             )
 
-            // Поле "Ваше имя"
+            // Показывать ошибку если есть
+            if (signUpState is SignUpState.Error) {
+                Text(
+                    text = (signUpState as SignUpState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+            }
+
             CustomTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -129,7 +124,6 @@ fun RegisterAccountScreen(
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Поле "Email"
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -139,7 +133,6 @@ fun RegisterAccountScreen(
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Поле "Пароль"
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -149,7 +142,6 @@ fun RegisterAccountScreen(
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Чекбокс
             CustomCheckbox(
                 isChecked = isChecked,
                 onCheckedChange = { isChecked = it },
@@ -161,26 +153,18 @@ fun RegisterAccountScreen(
 
             RegistrationButton(
                 onClick = {
-                    // Валидация полей
                     val nameValid = name.isNotEmpty() && name.length >= 2
                     val emailValid = email.isNotEmpty() &&
                             android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
                     val passwordValid = password.isNotEmpty() && password.length >= 6
 
                     if (nameValid && emailValid && passwordValid && isChecked) {
-                        // Передаем имя, email и пароль в ViewModel
                         viewModel.signUp(name, email, password)
-                    } else {
-                        // Показать ошибки валидации пользователю
-                        // Можно добавить отображение ошибок
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp)
+                }
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Ссылка на вход
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -212,7 +196,6 @@ fun RegisterAccountScreen(
     }
 }
 
-// Превью функция
 @Preview(showBackground = true)
 @Composable
 fun RegisterAccountScreenPreview() {

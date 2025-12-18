@@ -8,52 +8,34 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 
-// В NavigationApp обновите маршруты
 @Composable
 fun NavigationApp(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "start_menu"
+        startDestination = "register"
     ) {
-        composable("sign_up") {
+        composable("register") {
             RegisterAccountScreen(
-                onSignInClick = { navController.navigate("sign_in") },
-                onSignUpClick = { navController.navigate("email_verification") }
+                onBackClick = { navController.popBackStack() },
+                onSignInClick = { /* ... */ },
+                onSignUpClick = { email -> // ИЗМЕНИТЕ: принимаем email
+                    // Передаем email как параметр
+                    navController.navigate("email_verification/$email")
+                }
             )
         }
-//        composable("sign_in") {
-//            SignInScreen(
-//                onForgotPasswordClick = { navController.navigate("forgot_password") },
-//                onSignInClick = { navController.navigate("home") },
-//                onSignUpClick = { navController.navigate("sign_up") }
-//            )
-//        }
 
-        composable("email_verification") {
+        composable("email_verification/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
             EmailVerificationScreen(
-                onSignInClick = { navController.navigate("sign_in") },
-                onVerificationSuccess = { navController.navigate("home") }
+                email = email, // Передаем email как параметр
+                onSignInClick = {
+                    navController.navigate("register")
+                },
+                onVerificationSuccess = {
+                    navController.popBackStack()
+                }
             )
         }
-        composable("reset_password") {
-            RecoveryVerificationScreen({}, {}
-            )
-        }
-//        composable("forgot_password") {
-//            ForgotPasswordScreen(
-//                onNavigateToOtpVerification = { navController.navigate("reset_password") },
-//            )
-//        }
-
-//        composable("start_menu") {
-//            OnboardScreen(
-//                onGetStartedClick = { navController.navigate("sign_up") },
-//            )
-//        }
-//
-//        composable("home") {
-//            HomeScreen({}, {}, {})
-//        }
-
     }
 }

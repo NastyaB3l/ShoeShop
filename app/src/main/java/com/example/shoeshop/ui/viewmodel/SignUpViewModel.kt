@@ -1,21 +1,19 @@
+package com.example.shoeshop.ui.viewmodel
+
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myfirstproject.data.model.SignUpRequest
+import com.example.shoeshop.data.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.example.shoeshop.data.RetrofitInstance
 
 class SignUpViewModel : ViewModel() {
     private val _signUpState = MutableStateFlow<SignUpState>(SignUpState.Idle)
     val signUpState: StateFlow<SignUpState> = _signUpState
 
-    // Два варианта метода signUp для гибкости
-
-    // 1. Метод с отдельными параметрами (для использования в UI)
     fun signUp(name: String, email: String, password: String) {
-        // Создаем SignUpRequest с именем
         val signUpRequest = SignUpRequest(
             name = name,
             email = email,
@@ -24,7 +22,6 @@ class SignUpViewModel : ViewModel() {
         signUp(signUpRequest)
     }
 
-    // 2. Существующий метод с SignUpRequest (для обратной совместимости)
     fun signUp(signUpRequest: SignUpRequest) {
         viewModelScope.launch {
             _signUpState.value = SignUpState.Loading
