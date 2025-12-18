@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Основная тема -->
+    <style name="Theme.ShoeShop" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/Accent</item>
+        <item name="colorPrimaryVariant">@color/Disable</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/SubTextDark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:statusBarColor">@color/Accent</item>
+        <item name="android:navigationBarColor">@color/Background</item>
+    </style>
+
+    <!-- Splash Screen тема -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/Accent</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/bag_2</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="postSplashScreenTheme">@style/Theme.ShoeShop</item>
+    </style>
+
+</resources>
