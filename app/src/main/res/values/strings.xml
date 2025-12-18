@@ -70,6 +70,9 @@
     <string name="Map">Map</string>
     <string name="LoyaltyCard">Loyalty Card</string>
 
+    <string name="set_new_password">Set new password</string>
+    <string name="set_password_description">Set a New Password to Login to Your Account</string>
+    <string name="confirm_password">Confirm password</string>
     <string name="recovery_code_sent">We have send password recovery code in your email</string>
     <string name="hello">Hello Again!</string>
     <string name="email">Email Address</string>

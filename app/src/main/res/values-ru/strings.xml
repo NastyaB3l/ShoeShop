@@ -71,6 +71,9 @@
     <string name="Map">Карта</string>
     <string name="LoyaltyCard">Карта лояльности</string>
 
+    <string name="set_new_password">Задать новый пароль</string>
+    <string name="set_password_description">Установите новый пароль для входа в вашу учетную запись</string>
+    <string name="confirm_password">Подтверждение пароля</string>
     <string name="recovery_code_sent">Мы отправили код восстановления пароля на вашу электронную почту.</string>
     <string name="hello">Привет!</string>
     <string name="email">Email</string>
