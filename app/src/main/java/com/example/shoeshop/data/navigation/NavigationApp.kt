@@ -58,6 +58,8 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-        
+        composable("home") {
+            //HomeScreen({},{},{})
+        }
     }
 }
