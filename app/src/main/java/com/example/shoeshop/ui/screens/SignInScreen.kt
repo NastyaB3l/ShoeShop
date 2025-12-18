@@ -44,6 +44,7 @@ fun SignInScreen(
     onForgotPasswordClick : () -> Unit = {} ,
     onSignInClick : () -> Unit = {} ,
     onSignUpClick : () -> Unit = {},
+    onBackClick : () -> Unit = {},
     viewModel: SignInViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -102,7 +103,7 @@ fun SignInScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         BackButton(
-            onClick = {}
+            onClick = onBackClick
         )
 
         Column(
