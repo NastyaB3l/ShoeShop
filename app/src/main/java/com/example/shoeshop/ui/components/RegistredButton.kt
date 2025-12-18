@@ -47,11 +47,3 @@ fun RegistrationButton(
     }
 }
 
-@Preview
-@Composable
-private fun RegistrationButton() {
-    RegistrationButton(
-        modifier = Modifier,
-        onClick = {}
-    )
-}
