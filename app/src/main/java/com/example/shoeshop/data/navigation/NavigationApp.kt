@@ -14,6 +14,7 @@ import com.example.shoeshop.ui.screens.CategoryProductsScreen
 import com.example.shoeshop.ui.screens.ForgotPasswordScreen
 import com.example.shoeshop.ui.screens.HomeScreen
 import com.example.shoeshop.ui.screens.OnboardScreen
+import com.example.shoeshop.ui.screens.ProductDetailScreen
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 import com.example.shoeshop.ui.screens.SignInScreen
 import com.example.shoeshop.ui.viewmodel.HomeViewModel
@@ -125,6 +126,28 @@ fun NavigationApp(navController: NavHostController) {
                     navController.navigate("category/$newCategoryName") {
                         popUpTo("category/{categoryName}") { inclusive = true }
                     }
+                }
+            )
+        }
+
+        // product
+        composable(
+            route = "product/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+
+            val homeBackStackEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("home")
+            }
+            val homeViewModel: HomeViewModel = viewModel(homeBackStackEntry)
+
+            ProductDetailScreen(
+                productId = productId,
+                onBackClick = { navController.popBackStack() },
+                onAddToCart = { /* TODO */ },
+                onToggleFavoriteInHome = { product ->
+                    homeViewModel.toggleFavorite(product)
                 }
             )
         }
