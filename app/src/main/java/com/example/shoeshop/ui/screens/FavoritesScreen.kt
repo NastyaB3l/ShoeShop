@@ -37,7 +37,7 @@ fun FavoritesScreen(
                 title = {
                     Text(
                         text = stringResource(id = R.string.Favourite),
-                        style = customTypography.headlineMedium
+                        style = customTypography.headlineLarge
                     )
                 },
                 navigationIcon = {
@@ -89,10 +89,7 @@ fun FavoritesScreen(
                                 onProductClick = { onProductClick(product) },
                                 onFavoriteClick = {
                                     viewModel.toggleFavorite(product)
-                                    onToggleFavoriteInHome(product)
-                                },
-                                onAddToCartClick = {
-                                    // TODO: добавить/удалить в корзину через ViewModel, когда будешь делать корзину
+                                    onToggleFavoriteInHome(product)   // ← добавить эту строку
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             )

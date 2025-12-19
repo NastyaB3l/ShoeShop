@@ -2,13 +2,10 @@ package com.example.shoeshop.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class VerifyOtpRequest(
+data class SendOtpRequest(
     @SerializedName("email")
     val email: String,
 
-    @SerializedName("token")
-    val token: String,
-
     @SerializedName("type")
-    val type: String // "recovery", "signup", "invite", "magiclink"
+    val type: String = "recovery" // "recovery", "signup", "magiclink"
 )

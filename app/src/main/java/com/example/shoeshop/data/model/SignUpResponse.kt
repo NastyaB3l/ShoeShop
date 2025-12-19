@@ -1,5 +1,5 @@
 // data/model/SignUpResponse.kt
-package com.example.myfirstproject.data.model
+package com.example.shoeshop.data.model
 
 data class SignUpResponse(
     val id: String,

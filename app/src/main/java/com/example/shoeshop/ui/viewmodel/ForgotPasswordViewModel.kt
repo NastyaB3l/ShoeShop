@@ -10,25 +10,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
-import kotlin.let
-import kotlin.run
-import kotlin.text.contains
 import kotlin.text.matches
 import kotlin.text.toRegex
 
 class ForgotPasswordViewModel : ViewModel() {
 
-    // UI State
     private val _passwordRecoveryState =
         MutableStateFlow<PasswordRecoveryState>(PasswordRecoveryState.Idle)
     val passwordRecoveryState: StateFlow<PasswordRecoveryState> = _passwordRecoveryState
 
-    // Email для валидации
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email
 
-    // Флаг валидности email
-    val isEmailValid = MutableStateFlow(false)
+    private val _isEmailValid = MutableStateFlow(false)
+    val isEmailValid: StateFlow<Boolean> = _isEmailValid
 
     fun updateEmail(email: String) {
         _email.value = email
@@ -37,16 +32,12 @@ class ForgotPasswordViewModel : ViewModel() {
 
     private fun validateEmail(email: String) {
         val emailPattern = "[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}".toRegex()
-        isEmailValid.value = email.matches(emailPattern)
+        _isEmailValid.value = email.matches(emailPattern)
     }
 
-    /**
-     * Отправка запроса на восстановление пароля
-     */
     fun recoverPassword() {
-        // Проверяем валидность email
-        if (!isEmailValid.value) {
-            _passwordRecoveryState.value = PasswordRecoveryState.Error("Please enter a valid email address")
+        if (!_isEmailValid.value) {
+            _passwordRecoveryState.value = PasswordRecoveryState.Error("Введите корректный email адрес")
             return
         }
 
@@ -54,120 +45,57 @@ class ForgotPasswordViewModel : ViewModel() {
             _passwordRecoveryState.value = PasswordRecoveryState.Loading
 
             try {
-                Log.d("ForgotPasswordViewModel", "Sending recovery request for email: ${_email.value}")
+                Log.d("ForgotPasswordVM", "Отправка запроса восстановления для: ${_email.value}")
 
-                // Создаем запрос
+                // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: redirectTo = null для OTP
                 val request = ForgotPasswordRequest(
-                    email = _email.value
+                    email = _email.value,
+                    redirectTo = null // Это заставляет Supabase отправлять OTP
                 )
 
-                // Отправляем запрос через Retrofit
                 val response = RetrofitInstance.userManagementService.recoverPassword(request)
 
-                Log.d("ForgotPasswordViewModel", "Response received: ${response.isSuccessful}")
+                Log.d("ForgotPasswordVM", "Ответ: ${response.code()}")
+                Log.d("ForgotPasswordVM", "Тело: ${response.body()}")
 
                 if (response.isSuccessful) {
-                    // Supabase возвращает 200 OK даже если email не найден
-                    response.body()?.let { recoveryResponse ->
-                        Log.d("ForgotPasswordViewModel", "Recovery response: $recoveryResponse")
-
-                        // Supabase может возвращать сообщение об успехе или ошибку в теле ответа
-                        if (recoveryResponse.error != null) {
-                            // Есть ошибка в теле ответа
-                            _passwordRecoveryState.value = PasswordRecoveryState.Error(
-                                parseRecoveryError(recoveryResponse.error)
-                            )
-                        } else {
-                            // Успешный ответ
-                            _passwordRecoveryState.value = PasswordRecoveryState.Success(
-                                "Password reset email has been sent to ${_email.value}"
-                            )
-                        }
-                    } ?: run {
-                        // Пустое тело ответа
-                        _passwordRecoveryState.value = PasswordRecoveryState.Success(
-                            "Password reset email has been sent to ${_email.value}"
-                        )
-                    }
+                    // Успех - OTP отправлен
+                    _passwordRecoveryState.value = PasswordRecoveryState.Success(
+                        "Код восстановления отправлен на ${_email.value}"
+                    )
                 } else {
-                    // Ошибка HTTP
                     val errorCode = response.code()
-                    val errorMessage = response.message()
                     val errorBody = response.errorBody()?.string() ?: ""
 
-                    Log.e("ForgotPasswordViewModel", "Error: $errorCode - $errorMessage - $errorBody")
+                    Log.e("ForgotPasswordVM", "Ошибка $errorCode: $errorBody")
 
-                    _passwordRecoveryState.value = PasswordRecoveryState.Error(
-                        parseRecoveryError(errorCode, errorMessage, errorBody)
-                    )
+                    val errorMessage = when (errorCode) {
+                        400 -> "Неверный запрос. Проверьте email."
+                        422 -> "Неверный формат email."
+                        429 -> "Слишком много попыток. Подождите 60 секунд."
+                        else -> "Ошибка: ${response.message()}"
+                    }
+
+                    _passwordRecoveryState.value = PasswordRecoveryState.Error(errorMessage)
                 }
             } catch (e: Exception) {
-                // Обработка исключений
-                val errorMessage = when (e) {
-                    is ConnectException -> "No internet connection. Please check your network."
-                    is SocketTimeoutException -> "Connection timeout. Please try again."
-                    else -> {
-                        Log.e("ForgotPasswordViewModel", "Exception: ${e.message}", e)
-                        "Recovery failed: ${e.message ?: "Unknown error"}"
+                Log.e("ForgotPasswordVM", "Исключение: ${e.message}", e)
+                _passwordRecoveryState.value = PasswordRecoveryState.Error(
+                    when (e) {
+                        is ConnectException -> "Нет подключения к интернету"
+                        is SocketTimeoutException -> "Таймаут соединения"
+                        else -> "Ошибка: ${e.message ?: "Неизвестная ошибка"}"
                     }
-                }
-                _passwordRecoveryState.value = PasswordRecoveryState.Error(errorMessage)
+                )
             }
         }
     }
 
-    /**
-     * Парсинг ошибок восстановления пароля
-     */
-    private fun parseRecoveryError(errorCode: Int, errorMessage: String, errorBody: String): String {
-        return when (errorCode) {
-            400 -> {
-                when {
-                    errorBody.contains("email", ignoreCase = true) -> "Invalid email address"
-                    errorBody.contains("rate limit", ignoreCase = true) -> "Too many requests. Please try again later."
-                    else -> "Bad request: $errorMessage"
-                }
-            }
-            401 -> "Unauthorized. Please check your API key."
-            403 -> "Forbidden. You don't have permission to perform this action."
-            404 -> "User with this email not found."
-            422 -> "Invalid email format."
-            429 -> "Too many attempts. Please try again in a few minutes."
-            500 -> "Server error. Please try again later."
-            502 -> "Bad gateway. Service temporarily unavailable."
-            503 -> "Service unavailable. Please try again later."
-            else -> "Recovery failed: $errorMessage"
-        }
-    }
-
-    /**
-     * Парсинг ошибки из тела ответа
-     */
-    private fun parseRecoveryError(errorBody: String): String {
-        return when {
-            errorBody.contains("user not found", ignoreCase = true) ->
-                "No account found with this email address."
-            errorBody.contains("rate limit", ignoreCase = true) ->
-                "Too many password reset attempts. Please try again later."
-            errorBody.contains("email not confirmed", ignoreCase = true) ->
-                "Email not confirmed. Please verify your email first."
-            errorBody.contains("disabled", ignoreCase = true) ->
-                "Account is disabled. Please contact support."
-            else -> "Recovery failed: $errorBody"
-        }
-    }
-
-    /**
-     * Сброс состояния
-     */
     fun resetState() {
         _passwordRecoveryState.value = PasswordRecoveryState.Idle
     }
 }
 
-/**
- * Состояния восстановления пароля
- */
 sealed class PasswordRecoveryState {
     object Idle : PasswordRecoveryState()
     object Loading : PasswordRecoveryState()
