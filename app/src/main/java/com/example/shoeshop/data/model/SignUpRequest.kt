@@ -1,5 +1,5 @@
 // data/model/SignUpRequest.kt
-package com.example.myfirstproject.data.model
+package com.example.shoeshop.data.model
 
 data class SignUpRequest(
     val name: String,

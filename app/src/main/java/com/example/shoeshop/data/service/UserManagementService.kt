@@ -1,12 +1,10 @@
 package com.example.shoeshop.data.service
 
-import com.example.myfirstproject.data.model.SignInRequest
-import com.example.myfirstproject.data.model.SignInResponse
-import com.example.myfirstproject.data.model.SignUpRequest
-import com.example.myfirstproject.data.model.SignUpResponse
-import com.example.myfirstproject.data.model.VerifyOtpRequest
-import com.example.myfirstproject.data.model.VerifyOtpResponse
-import com.example.myfirstproject.data.model.VerifyRecoveryResponse
+import com.example.shoeshop.data.model.SignUpRequest
+import com.example.shoeshop.data.model.SignUpResponse
+import com.example.shoeshop.data.model.VerifyOtpRequest
+import com.example.shoeshop.data.model.VerifyOtpResponse
+import com.example.shoeshop.data.model.VerifyRecoveryResponse
 import com.example.shoeshop.data.model.*
 import retrofit2.Response
 import retrofit2.http.Body

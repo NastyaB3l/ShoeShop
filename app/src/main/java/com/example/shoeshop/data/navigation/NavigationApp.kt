@@ -41,15 +41,16 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-        composable("email_verification") {
+        composable(
+            route = "email_verification/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val emailArg = backStackEntry.arguments?.getString("email") ?: ""
+
             EmailVerificationScreen(
-                email = "", // просто пустая строка
-                onSignInClick = {
-                    navController.navigate("sign_in")
-                },
-                onVerificationSuccess = {
-                    navController.navigate("sign_in")
-                }
+                email = emailArg,
+                onSignInClick = { navController.navigate("sign_in") },
+                onVerificationSuccess = { navController.navigate("home") }
             )
         }
 
@@ -62,18 +63,18 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-        composable("email_verification/{email}") { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-            EmailVerificationScreen(
-                email = email, // Передаем email как параметр
-                onSignInClick = {
-                    navController.navigate("register")
-                },
-                onVerificationSuccess = {
-                    navController.popBackStack()
-                }
-            )
-        }
+//        composable("email_verification/{email}") { backStackEntry ->
+//            val email = backStackEntry.arguments?.getString("email") ?: ""
+//            EmailVerificationScreen(
+//                email = email, // Передаем email как параметр
+//                onSignInClick = {
+//                    navController.navigate("register")
+//                },
+//                onVerificationSuccess = {
+//                    navController.popBackStack()
+//                }
+//            )
+//        }
 
         // home
         composable("home") { backStackEntry ->

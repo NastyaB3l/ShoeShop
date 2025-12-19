@@ -3,13 +3,14 @@ package com.example.shoeshop.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myfirstproject.data.model.SignInRequest
-import com.example.myfirstproject.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.example.shoeshop.data.RetrofitInstance
+import com.example.shoeshop.data.SessionManager
 import com.example.shoeshop.data.model.ChangePasswordRequest
+import com.example.shoeshop.data.model.SignInRequest
+import com.example.shoeshop.data.model.User
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
@@ -36,6 +37,8 @@ class SignInViewModel : ViewModel() {
                         saveAuthToken(signInResponse.access_token)
                         saveRefreshToken(signInResponse.refresh_token)
                         saveUserData(signInResponse.user)
+
+                        SessionManager.accessToken = signInResponse.access_token
 
                         Log.v("signIn", "User authenticated: ${signInResponse.user.email}")
                         _signInState.value = SignInState.Success
@@ -102,7 +105,10 @@ class SignInViewModel : ViewModel() {
 
     private fun saveAuthToken(token: String) {
         // TODO: Сохранить токен в SecurePreferences
-        Log.d("Auth", "Access token saved: ${token.take(10)}...")
+        SessionManager.userId = SessionManager.userId ?: "" // или из ответа
+        SessionManager.accessToken = token
+
+        Log.d("Auth", "Access token saved")
     }
 
     private fun saveRefreshToken(token: String) {
@@ -111,7 +117,9 @@ class SignInViewModel : ViewModel() {
     }
 
     private fun saveUserData(user: User) {
-        // TODO: Сохранить данные пользователя
+        // Сохраняем userId в SessionManager
+        SessionManager.userId = user.id
+
         Log.d("Auth", "User data saved: ${user.email}")
     }
 

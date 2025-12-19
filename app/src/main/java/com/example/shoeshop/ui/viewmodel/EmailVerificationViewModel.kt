@@ -3,7 +3,7 @@ package com.example.shoeshop.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myfirstproject.data.model.VerifyOtpRequest
+import com.example.shoeshop.data.model.VerifyOtpRequest
 import com.example.shoeshop.data.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

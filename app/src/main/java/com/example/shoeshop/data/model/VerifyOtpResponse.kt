@@ -1,4 +1,4 @@
-package com.example.myfirstproject.data.model
+package com.example.shoeshop.data.model
 
 data class VerifyOtpResponse(
     val access_token: String,
