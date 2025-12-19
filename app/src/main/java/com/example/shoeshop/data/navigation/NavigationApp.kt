@@ -3,18 +3,22 @@ package com.example.shoeshop.data.navigation
 import EmailVerificationScreen
 import RecoveryVerificationScreen
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.shoeshop.ui.screens.ForgotPasswordScreen
+import com.example.shoeshop.ui.screens.HomeScreen
+import com.example.shoeshop.ui.screens.OnboardScreen
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 import com.example.shoeshop.ui.screens.SignInScreen
+import com.example.shoeshop.ui.viewmodel.HomeViewModel
 
 @Composable
 fun NavigationApp(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "register"
+        startDestination = "start_menu"
     ) {
         composable("register") {
             RegisterAccountScreen(
@@ -23,6 +27,12 @@ fun NavigationApp(navController: NavHostController) {
                 onSignUpClick = { email ->
                     navController.navigate("email_verification/$email")
                 }
+            )
+        }
+
+        composable("start_menu") {
+            OnboardScreen (
+                onGetStartedClick = { navController.navigate("register") },
             )
         }
 
@@ -60,8 +70,21 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-        composable("home") {
-            //HomeScreen({},{},{})
+        // home
+        composable("home") { backStackEntry ->
+            val homeViewModel: HomeViewModel = viewModel(backStackEntry)
+            HomeScreen(
+                homeViewModel = homeViewModel,
+                onProductClick = { product ->
+                    navController.navigate("product/${product.id}")
+                },
+                onCartClick = { /* ... */ },
+                onSearchClick = { /* ... */ },
+                onSettingsClick = { },
+                onCategoryClick = { categoryName ->
+                    navController.navigate("category/$categoryName")
+                }
+            )
         }
 
         composable("forgot_password") {
@@ -75,5 +98,7 @@ fun NavigationApp(navController: NavHostController) {
             RecoveryVerificationScreen({},{}
             )
         }
+
+
     }
 }

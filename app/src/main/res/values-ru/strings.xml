@@ -71,6 +71,16 @@
     <string name="Map">Карта</string>
     <string name="LoyaltyCard">Карта лояльности</string>
 
+    <string name="not_specified">Not specified</string>
+    <string name="address">Адрес</string>
+    <string name="phone_number">Телефон</string>
+    <string name="change_profile_picture">Изменить фото профиля</string>
+    <string name="your_name">Имя</string>
+    <string name="last_name">Фамилия</string>
+    <string name="save_now">Сохранить</string>
+    <string name="change_profile_photo">Изменить фото профиля</string>
+    <string name="profile_photo">Фото профиля</string>
+    <string name="edit">Редактировать</string>
     <string name="set_new_password">Задать новый пароль</string>
     <string name="set_password_description">Установите новый пароль для входа в вашу учетную запись</string>
     <string name="confirm_password">Подтверждение пароля</string>
