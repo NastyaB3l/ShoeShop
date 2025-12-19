@@ -65,11 +65,22 @@
     <string name="ChangeProfilePicture">Change Profile Picture</string>
     <string name="YourName">Your Name</string>
     <string name="LastName">Last Name</string>
-    <string name="saveNow">save Now</string>
-    <string name="confirm">confirm</string>
+    <string name="saveNow">Save Now</string>
+    <string name="confirm">Confirm</string>
     <string name="Map">Map</string>
     <string name="LoyaltyCard">Loyalty Card</string>
 
+
+    <string name="not_specified">Not specified</string>
+    <string name="address">Address</string>
+    <string name="phone_number">Phone number</string>
+    <string name="change_profile_picture">Change Profile Picture</string>
+    <string name="your_name">Your Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="save_now">Save Now</string>
+    <string name="change_profile_photo">Change your profile photo</string>
+    <string name="profile_photo">Profile Photo</string>
+    <string name="edit">Edit</string>
     <string name="set_new_password">Set new password</string>
     <string name="set_password_description">Set a New Password to Login to Your Account</string>
     <string name="confirm_password">Confirm password</string>
