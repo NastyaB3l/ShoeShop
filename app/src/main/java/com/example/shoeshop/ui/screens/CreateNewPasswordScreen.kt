@@ -1,31 +1,20 @@
 package com.example.shoeshop.ui.screens
 
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,21 +22,13 @@ import com.example.shoeshop.R
 import com.example.shoeshop.ui.components.BackButton
 import com.example.shoeshop.ui.components.DisableButton
 import com.example.shoeshop.ui.theme.customTypography
-import com.example.shoeshop.ui.theme.ShoeShopTheme
 import com.example.shoeshop.ui.viewmodel.ChangePasswordState
-import com.example.shoeshop.ui.viewmodel.SignInState
 import com.example.shoeshop.ui.viewmodel.SignInViewModel
-import kotlin.let
-import kotlin.text.isNotEmpty
 
 @Composable
 fun CreateNewPasswordScreen(
-    modifier: Modifier = Modifier,
-    userToken: String? = null, // Добавьте параметр для токена
-    onPasswordChanged: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onSignInClick: () -> Unit = {},
-    onSignUpClick: () -> Unit = {},
+    userToken: String?,
+    onPasswordChanged: () -> Unit,
     viewModel: SignInViewModel = viewModel()
 ) {
     var password by remember { mutableStateOf("") }
@@ -55,14 +36,11 @@ fun CreateNewPasswordScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Состояние для отслеживания ошибок валидации
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
-    // Отслеживаем состояние смены пароля
     val changePasswordState by viewModel.changePasswordState.collectAsStateWithLifecycle()
 
-    // AlertDialog для отображения результатов
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -73,22 +51,18 @@ fun CreateNewPasswordScreen(
                 showSuccessDialog = true
                 viewModel.resetChangePasswordState()
             }
-
             is ChangePasswordState.Error -> {
                 errorMessage = (changePasswordState as ChangePasswordState.Error).message
                 showErrorDialog = true
                 viewModel.resetChangePasswordState()
             }
-
             else -> {}
         }
     }
 
-    // Функция валидации пароля
     fun validatePasswords(): Boolean {
         var isValid = true
 
-        // Валидация пароля
         if (password.length < 6) {
             passwordError = "Password must be at least 6 characters"
             isValid = false
@@ -96,7 +70,6 @@ fun CreateNewPasswordScreen(
             passwordError = null
         }
 
-        // Валидация подтверждения пароля
         if (confirmPassword != password) {
             confirmPasswordError = "Passwords do not match"
             isValid = false
@@ -107,12 +80,11 @@ fun CreateNewPasswordScreen(
         return isValid
     }
 
-    // Диалог успеха
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = {
                 showSuccessDialog = false
-                onPasswordChanged() // Переходим на другой экран
+                onPasswordChanged()
             },
             title = { Text("Success") },
             text = { Text("Password changed successfully") },
@@ -130,7 +102,6 @@ fun CreateNewPasswordScreen(
         )
     }
 
-    // Диалог ошибки
     if (showErrorDialog) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
@@ -147,50 +118,60 @@ fun CreateNewPasswordScreen(
         )
     }
 
-    // Loading состояние
     if (changePasswordState is ChangePasswordState.Loading) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
         }
+        return
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(23.dp)
-            .background(Color.White),
-        verticalArrangement = Arrangement.Center,
+            .background(Color.White)
+            .padding(23.dp),
+        verticalArrangement = Arrangement.Top
     ) {
         BackButton(
-            onClick = { /* Навигация назад */ }
+            onClick = { /* навигация назад снаружи */ },
+            modifier = Modifier.align(Alignment.Start)
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = stringResource(id = R.string.set_new_password),
-                style = customTypography.headlineMedium,
+                //style = AppTypography.headingRegular32,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 8.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
             )
 
             Text(
                 text = stringResource(id = R.string.set_password_description),
-                style = customTypography.labelMedium,
+               // style = AppTypography.subtitleRegular16,
                 color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(bottom = 54.dp)
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 54.dp)
             )
         }
 
-        // Поле "Пароль"
         Text(
             text = stringResource(id = R.string.pass),
-            style = customTypography.labelLarge.copy(fontWeight = FontWeight.Medium),
+           // style = AppTypography.bodyMedium16.copy(fontWeight = FontWeight.Medium),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -199,7 +180,7 @@ fun CreateNewPasswordScreen(
             value = password,
             onValueChange = {
                 password = it
-                passwordError = null // Сбрасываем ошибку при изменении
+                passwordError = null
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -207,9 +188,9 @@ fun CreateNewPasswordScreen(
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedBorderColor = if (passwordError != null) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedBorderColor = if (passwordError != null) Color.Red else MaterialTheme.colorScheme.primary
             ),
-            textStyle = customTypography.labelMedium,
+           // textStyle = AppTypography.bodyRegular16,
             singleLine = true,
             isError = passwordError != null,
             trailingIcon = {
@@ -218,26 +199,24 @@ fun CreateNewPasswordScreen(
                         painter = painterResource(
                             id = if (passwordVisible) R.drawable.eye_close else R.drawable.eye_open
                         ),
-                        contentDescription = if (passwordVisible) "Скрыть пароль" else "Показать пароль",
+                        contentDescription = if (passwordVisible) "Скрыть пароль" else "Показать пароль"
                     )
                 }
             }
         )
 
-        // Отображение ошибки для пароля
         passwordError?.let {
             Text(
                 text = it,
                 color = Color.Red,
-                style = customTypography.displayMedium,
+                //style = AppTypography.bodyRegular14,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
 
-        // Поле "Подтверждение пароля"
         Text(
             text = stringResource(id = R.string.confirm_password),
-            style = customTypography.labelLarge.copy(fontWeight = FontWeight.Medium),
+            //style = AppTypography.bodyMedium16.copy(fontWeight = FontWeight.Medium),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp, top = 20.dp)
         )
@@ -246,7 +225,7 @@ fun CreateNewPasswordScreen(
             value = confirmPassword,
             onValueChange = {
                 confirmPassword = it
-                confirmPasswordError = null // Сбрасываем ошибку при изменении
+                confirmPasswordError = null
             },
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -254,9 +233,9 @@ fun CreateNewPasswordScreen(
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedBorderColor = if (confirmPasswordError != null) Color.Red else MaterialTheme.colorScheme.primary,
+                focusedBorderColor = if (confirmPasswordError != null) Color.Red else MaterialTheme.colorScheme.primary
             ),
-            textStyle = customTypography.labelMedium,
+            //textStyle = AppTypography.bodyRegular16,
             singleLine = true,
             isError = confirmPasswordError != null,
             trailingIcon = {
@@ -265,27 +244,25 @@ fun CreateNewPasswordScreen(
                         painter = painterResource(
                             id = if (confirmPasswordVisible) R.drawable.eye_close else R.drawable.eye_open
                         ),
-                        contentDescription = if (confirmPasswordVisible) "Скрыть пароль" else "Показать пароль",
+                        contentDescription = if (confirmPasswordVisible) "Скрыть пароль" else "Показать пароль"
                     )
                 }
             }
         )
 
-        // Отображение ошибки для подтверждения пароля
         confirmPasswordError?.let {
             Text(
                 text = it,
                 color = Color.Red,
-                style = customTypography.displayMedium,
+               // style = AppTypography.bodyRegular14,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Кнопка сохранения
         DisableButton(
-            text = stringResource(id = R.string.saveNow),
+            text = stringResource(id = R.string.save_now),
             enabled = password.isNotEmpty() && confirmPassword.isNotEmpty(),
             onClick = {
                 if (validatePasswords() && userToken != null) {
@@ -295,17 +272,9 @@ fun CreateNewPasswordScreen(
                     showErrorDialog = true
                 }
             },
-            textStyle = customTypography.labelLarge
+            //textStyle = AppTypography.bodyMedium16
         )
 
         Spacer(modifier = Modifier.weight(1f))
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun CreateNewPasswordScreenPreview() {
-    ShoeShopTheme {
-        CreateNewPasswordScreen()
     }
 }

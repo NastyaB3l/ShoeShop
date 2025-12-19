@@ -1,16 +1,11 @@
 package com.example.shoeshop.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +22,6 @@ import com.example.shoeshop.ui.theme.ShoeShopTheme
 import com.example.shoeshop.ui.viewmodel.ForgotPasswordViewModel
 import com.example.shoeshop.ui.viewmodel.PasswordRecoveryState
 import kotlinx.coroutines.launch
-import kotlin.text.isNotEmpty
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,38 +37,40 @@ fun ForgotPasswordScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Состояние для отображения AlertDialog
     var showSuccessDialog by remember { mutableStateOf(false) }
 
-    // Обработка состояний
     LaunchedEffect(uiState) {
         when (uiState) {
             is PasswordRecoveryState.Success -> {
+                Log.d("ForgotPasswordScreen", "Успешная отправка OTP для: $email")
                 showSuccessDialog = true
             }
-
             is PasswordRecoveryState.Error -> {
+                val errorMessage = (uiState as PasswordRecoveryState.Error).message
+                Log.e("ForgotPasswordScreen", "Ошибка: $errorMessage")
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        (uiState as PasswordRecoveryState.Error).message,
+                        errorMessage,
                         withDismissAction = true
                     )
                 }
+                viewModel.resetState()
             }
-
             else -> {}
         }
     }
 
-    // Отображаем AlertDialog при успешной отправке
     if (showSuccessDialog && email.isNotEmpty()) {
         PasswordResetAlertDialog(
             onConfirm = {
                 showSuccessDialog = false
+                Log.d("ForgotPasswordScreen", "Переход на верификацию с email: $email")
                 onNavigateToOtpVerification(email)
+                viewModel.resetState()
             },
             onDismiss = {
                 showSuccessDialog = false
+                viewModel.resetState()
             }
         )
     }
@@ -90,7 +86,6 @@ fun ForgotPasswordScreen(
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Кнопка назад
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
@@ -100,7 +95,6 @@ fun ForgotPasswordScreen(
                 )
             }
 
-            // Заголовок
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -120,7 +114,6 @@ fun ForgotPasswordScreen(
                 )
             }
 
-            // Поле для ввода email
             OutlinedTextField(
                 value = email,
                 onValueChange = { viewModel.updateEmail(it) },
@@ -169,7 +162,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Кнопка отправки
             Button(
                 onClick = { viewModel.recoverPassword() },
                 modifier = Modifier

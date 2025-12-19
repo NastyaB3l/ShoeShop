@@ -32,22 +32,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.shoeshop.R
 import com.example.shoeshop.ui.components.DisableButton
-import com.example.shoeshop.ui.theme.ShoeShopTheme
 import com.example.shoeshop.ui.theme.customTypography
 import com.example.shoeshop.ui.viewmodel.EmailVerificationViewModel
 import com.example.shoeshop.ui.viewmodel.VerificationState
 import com.example.shoeshop.ui.viewmodel.OtpType
+import com.example.shoeshop.util.getUserEmail
 import kotlinx.coroutines.delay
 
 @Composable
 fun EmailVerificationScreen(
-    email: String, // Добавьте параметр email
+    email: String,
     onSignInClick: () -> Unit,
     onVerificationSuccess: () -> Unit,
     viewModel: EmailVerificationViewModel = viewModel()
 ) {
     var otpCode by remember { mutableStateOf("") }
-    var userEmail by remember { mutableStateOf(email) } // Используйте переданный email
+    var userEmail by remember { mutableStateOf(email) }   // ← сразу кладём аргумент
     var resendEnabled by remember { mutableStateOf(true) }
     var countdown by remember { mutableStateOf(0) }
     val context = LocalContext.current
@@ -65,11 +65,13 @@ fun EmailVerificationScreen(
 
     LaunchedEffect(verificationState) {
         when (verificationState) {
+            is VerificationState.Loading -> {
+                // Можно показать индикатор загрузки
+            }
             is VerificationState.Success -> {
                 when ((verificationState as VerificationState.Success).type) {
                     OtpType.EMAIL -> {
-                        // ПРОСТО ВЫЗЫВАЕМ onSignInClick() ВМЕСТО onVerificationSuccess()
-                        onSignInClick() // ← ВОТ ТУТ ПРОСТО ИЗМЕНИТЕ
+                        onVerificationSuccess()
                         viewModel.resetState()
                     }
                     OtpType.RECOVERY -> {
@@ -101,7 +103,7 @@ fun EmailVerificationScreen(
     ) {
         // Заголовок
         Text(
-            text = stringResource(id = R.string.Email),
+            text = stringResource(id = R.string.verify_your_email),
             style = MaterialTheme.typography.headlineLarge,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
@@ -158,6 +160,7 @@ fun EmailVerificationScreen(
                     }
                 }
             },
+            placeholder = { Text(stringResource(id = R.string.otp_placeholder)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -231,6 +234,19 @@ fun EmailVerificationScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        // Кнопка проверки OTP
+        DisableButton(
+            text = stringResource(id = R.string.verify),
+            enabled = otpCode.length == 6 && userEmail.isNotEmpty(),
+            onClick = {
+                if (otpCode.length == 6 && userEmail.isNotEmpty()) {
+                    viewModel.verifyEmailOtp(userEmail, otpCode) // Используем email метод
+                }
+            },
+            textStyle = customTypography.labelLarge
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Ссылка для возврата к входу
         Row(
@@ -255,9 +271,4 @@ fun EmailVerificationScreen(
             }
         }
     }
-}
-
-fun getUserEmail(context: Context): String {
-    val sharedPreferences = context.getSharedPreferences("shoe_shop_prefs", Context.MODE_PRIVATE)
-    return sharedPreferences.getString("user_email", "") ?: ""
 }

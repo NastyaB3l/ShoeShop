@@ -46,11 +46,13 @@ object RetrofitInstance {
         }
         .build()
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(SUPABASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(client)
-        .build()
+    private val retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(SUPABASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+    }
 
     private val retrofitRest = Retrofit.Builder()
         .baseUrl(REST_URL)

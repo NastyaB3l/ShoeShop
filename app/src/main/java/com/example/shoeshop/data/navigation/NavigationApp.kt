@@ -1,7 +1,6 @@
 package com.example.shoeshop.data.navigation
 
 import EmailVerificationScreen
-import RecoveryVerificationScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,10 +10,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.shoeshop.ui.screens.CategoryProductsScreen
+import com.example.shoeshop.ui.screens.CreateNewPasswordScreen
 import com.example.shoeshop.ui.screens.ForgotPasswordScreen
 import com.example.shoeshop.ui.screens.HomeScreen
 import com.example.shoeshop.ui.screens.OnboardScreen
 import com.example.shoeshop.ui.screens.ProductDetailScreen
+import com.example.shoeshop.ui.screens.RecoveryVerificationScreen
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 import com.example.shoeshop.ui.screens.SignInScreen
 import com.example.shoeshop.ui.viewmodel.HomeViewModel
@@ -63,20 +64,62 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-//        composable("email_verification/{email}") { backStackEntry ->
-//            val email = backStackEntry.arguments?.getString("email") ?: ""
-//            EmailVerificationScreen(
-//                email = email, // Передаем email как параметр
-//                onSignInClick = {
-//                    navController.navigate("register")
-//                },
-//                onVerificationSuccess = {
-//                    navController.popBackStack()
-//                }
-//            )
-//        }
+        composable("forgot_password") {
+            ForgotPasswordScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToOtpVerification = { email ->
+                    navController.navigate("recovery_verification/$email")
+                }
+            )
+        }
 
-        // home
+        // NavigationApp.kt
+        composable(
+            route = "recovery_verification/{email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+
+            RecoveryVerificationScreen(
+                onSignInClick = {
+                    // Просто переходим на вход - пароль уже сброшен
+                    navController.navigate("sign_in") {
+                        popUpTo("recovery_verification/{email}") { inclusive = true }
+                    }
+                },
+                onBackClick = { navController.popBackStack() },
+                onResetPasswordClick = { accessToken ->
+                    // Переходим на экран смены пароля
+                    navController.navigate("create_new_password/$accessToken")
+                }
+            )
+        }
+
+        composable(
+            "create_new_password/{token}",
+            arguments = listOf(navArgument("token") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val token = backStackEntry.arguments?.getString("token")
+
+            CreateNewPasswordScreen(
+                userToken = token,
+                onPasswordChanged = {
+                    navController.navigate("sign_in") {
+                        popUpTo("sign_in") { inclusive = false }
+                    }
+                }
+            )
+        }
+        composable("reset_password") {
+            RecoveryVerificationScreen(
+                onSignInClick = { navController.navigate("sign_in") },
+                onResetPasswordClick = { accessToken ->
+                    navController.navigate("create_new_password/$accessToken")
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         composable("home") { backStackEntry ->
             val homeViewModel: HomeViewModel = viewModel(backStackEntry)
             HomeScreen(
@@ -90,18 +133,6 @@ fun NavigationApp(navController: NavHostController) {
                 onCategoryClick = { categoryName ->
                     navController.navigate("category/$categoryName")
                 }
-            )
-        }
-
-        composable("forgot_password") {
-            ForgotPasswordScreen(
-                onNavigateToOtpVerification = { navController.navigate("reset_password") },
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable("reset_password") {
-            RecoveryVerificationScreen({},{}
             )
         }
 
@@ -131,7 +162,6 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
-        // product
         composable(
             route = "product/{productId}",
             arguments = listOf(navArgument("productId") { type = NavType.StringType })
