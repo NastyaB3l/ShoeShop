@@ -1,7 +1,6 @@
 // ui/components/ProductCard.kt
 package com.example.shoeshop.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,18 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.shoeshop.data.model.Product
 import com.example.shoeshop.ui.theme.customTypography
-import com.example.shoeshop.R
-import kotlin.text.format
-import kotlin.text.take
-import kotlin.text.uppercase
 
 @Composable
 fun ProductCard(
     product: Product,
     onProductClick: () -> Unit,
     onFavoriteClick: () -> Unit,
-    onAddToCartClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
     Card(
         modifier = Modifier
@@ -46,13 +40,14 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
+            // Изображение продукта
             Box(
                 modifier = modifier
                     .height(120.dp)
                     .background(Color(0xFFF5F5F5))
             ) {
                 if (product.imageResId != null) {
-                    Image(
+                    androidx.compose.foundation.Image(
                         painter = painterResource(id = product.imageResId),
                         contentDescription = product.name,
                         contentScale = ContentScale.Crop,
@@ -73,7 +68,7 @@ fun ProductCard(
                     }
                 }
 
-                // избранное (слева)
+                // Кнопка избранного (СЛЕВА)
                 IconButton(
                     onClick = onFavoriteClick,
                     modifier = Modifier
@@ -81,21 +76,18 @@ fun ProductCard(
                         .padding(8.dp)
                 ) {
                     Icon(
-                        imageVector = if (product.isFavorite)
-                            Icons.Default.Favorite
-                        else
-                            Icons.Default.FavoriteBorder,
+                        imageVector = if (product.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Избранное",
                         tint = if (product.isFavorite) Color.Red else Color.Black
                     )
                 }
             }
 
-            // НИЖНЯЯ ЧАСТЬ: текст + кнопка в правом нижнем углу
+            // Информация о продукте
             Column(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
+                // BEST SELLER текст над названием
                 if (product.isBestSeller) {
                     Text(
                         text = "BEST SELLER",
@@ -109,7 +101,7 @@ fun ProductCard(
 
                 Text(
                     text = product.name,
-                    style = customTypography.labelMedium,
+                    style = customTypography.labelLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.height(48.dp)
@@ -117,48 +109,17 @@ fun ProductCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // цена слева
-                    Text(
-                        text = "P${String.format("%.2f", product.price)}",
-                        style = customTypography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                // Отображаем цену в формате P{цена}
+                Text(
+                    text = "P${String.format("%.2f", product.price)}",
+                    style = customTypography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold
                     )
-
-                            // кнопка справа
-                            IconButton(
-                                onClick = onAddToCartClick,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(
-                                        color = Color(0xFF03A9F4),
-                                        shape = RoundedCornerShape(13.dp)
-                                    )
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (product.isInCart)
-                                            R.drawable.cart   // иконка корзины
-                                        else
-                                            R.drawable.add    // иконка "+"
-                                    ),
-                                    contentDescription = if (product.isInCart)
-                                        "В корзине"
-                                    else
-                                        "Добавить в корзину",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                }
+                )
             }
         }
     }
+}
+
 
 

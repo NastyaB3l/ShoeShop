@@ -3,10 +3,14 @@ package com.example.shoeshop.data.navigation
 import EmailVerificationScreen
 import RecoveryVerificationScreen
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.shoeshop.ui.screens.CategoryProductsScreen
 import com.example.shoeshop.ui.screens.ForgotPasswordScreen
 import com.example.shoeshop.ui.screens.HomeScreen
 import com.example.shoeshop.ui.screens.OnboardScreen
@@ -99,6 +103,30 @@ fun NavigationApp(navController: NavHostController) {
             )
         }
 
+        composable(
+            route = "category/{categoryName}",
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
 
+            val homeBackStackEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("home")
+            }
+            val homeViewModel: HomeViewModel = viewModel(homeBackStackEntry)
+
+            CategoryProductsScreen(
+                homeViewModel = homeViewModel,
+                categoryName = categoryName,
+                onProductClick = { product ->
+                    navController.navigate("product/${product.id}")
+                },
+                onBackClick = { navController.popBackStack() },
+                onCategorySelected = { newCategoryName ->
+                    navController.navigate("category/$newCategoryName") {
+                        popUpTo("category/{categoryName}") { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }

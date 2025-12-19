@@ -91,9 +91,6 @@ fun FavoritesScreen(
                                     viewModel.toggleFavorite(product)
                                     onToggleFavoriteInHome(product)
                                 },
-                                onAddToCartClick = {
-                                    // TODO: добавить/удалить в корзину через ViewModel, когда будешь делать корзину
-                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
