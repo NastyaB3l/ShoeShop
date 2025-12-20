@@ -71,6 +71,7 @@
     <string name="Map">Карта</string>
     <string name="LoyaltyCard">Карта лояльности</string>
 
+    <string name="hide">Скрыть</string>
     <string name="not_specified">Not specified</string>
     <string name="address">Адрес</string>
     <string name="phone_number">Телефон</string>

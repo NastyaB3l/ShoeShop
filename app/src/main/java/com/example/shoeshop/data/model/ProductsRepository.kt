@@ -1,9 +1,17 @@
-package com.example.shoeshop.data.repository
+package com.example.shoeshop.data.model
 
+import android.util.Log
 import com.example.shoeshop.data.RetrofitInstance
 import com.example.shoeshop.data.model.Category
 import com.example.shoeshop.data.model.Product
 import java.util.Collections.emptyList
+import kotlin.collections.filter
+import kotlin.collections.first
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.joinToString
+import kotlin.collections.orEmpty
+import kotlin.getOrDefault
 
 class ProductsRepository {
     private val productsService = RetrofitInstance.productsService
@@ -21,7 +29,13 @@ class ProductsRepository {
             if (response.isSuccessful) {
                 Result.success(response.body() ?: emptyList())
             } else {
-                Result.failure(Exception("HTTP ${response.code()}: ${response.errorBody()?.string()}"))
+                Result.failure(
+                    kotlin.Exception(
+                        "HTTP ${response.code()}: ${
+                            response.errorBody()?.string()
+                        }"
+                    )
+                )
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -36,13 +50,13 @@ class ProductsRepository {
             if (allProductsResult.isSuccess) {
                 val allProducts = allProductsResult.getOrDefault(emptyList())
                 val bestSellers = allProducts.filter { it.isBestSeller }
-                android.util.Log.d(TAG, "getBestSellers: из ${allProducts.size} товаров найдено ${bestSellers.size} бестселлеров")
+                Log.d(TAG, "getBestSellers: из ${allProducts.size} товаров найдено ${bestSellers.size} бестселлеров")
                 Result.success(bestSellers)
             } else {
                 allProductsResult
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Исключение getBestSellers: ${e.message}", e)
+            Log.e(TAG, "Исключение getBestSellers: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -50,22 +64,22 @@ class ProductsRepository {
     suspend fun getCategories(): Result<List<Category>> {
         return try {
             val response = categoriesService.getCategories()
-            android.util.Log.d(TAG, "getCategories: код ${response.code()}")
+            Log.d(TAG, "getCategories: код ${response.code()}")
 
             if (response.isSuccessful) {
                 val body = response.body()
-                android.util.Log.d(TAG, "getCategories: получено ${body?.size ?: 0} категорий")
+                Log.d(TAG, "getCategories: получено ${body?.size ?: 0} категорий")
                 body?.forEach { category ->
-                    android.util.Log.d(TAG, "Категория: id=${category.id}, name=${category.name}")
+                    Log.d(TAG, "Категория: id=${category.id}, name=${category.name}")
                 }
                 Result.success(body ?: emptyList())
             } else {
                 val errorBody = response.errorBody()?.string()
-                android.util.Log.e(TAG, "Ошибка getCategories: ${response.code()}, $errorBody")
-                Result.failure(Exception("HTTP ${response.code()}: $errorBody"))
+                Log.e(TAG, "Ошибка getCategories: ${response.code()}, $errorBody")
+                Result.failure(kotlin.Exception("HTTP ${response.code()}: $errorBody"))
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Исключение getCategories: ${e.message}", e)
+            Log.e(TAG, "Исключение getCategories: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -74,27 +88,27 @@ class ProductsRepository {
         return try {
             // ДОБАВЬТЕ "eq." перед categoryId
             val filter = "eq.$categoryId"
-            android.util.Log.d(TAG, "Запрос товаров с фильтром: $filter")
+            Log.d(TAG, "Запрос товаров с фильтром: $filter")
 
             // УБЕДИТЕСЬ, что передаете параметр
             val response = productsService.getProductsByCategory(
                 categoryId = filter  // ← ВАЖНО: передаем параметр!
             )
 
-            android.util.Log.d(TAG, "Ответ по категории: код ${response.code()}")
-            android.util.Log.d(TAG, "Ответ по категории: успешно ${response.isSuccessful}")
+            Log.d(TAG, "Ответ по категории: код ${response.code()}")
+            Log.d(TAG, "Ответ по категории: успешно ${response.isSuccessful}")
 
             if (response.isSuccessful) {
                 val body = response.body()
-                android.util.Log.d(TAG, "Получено товаров категории: ${body?.size ?: 0}")
+                Log.d(TAG, "Получено товаров категории: ${body?.size ?: 0}")
                 Result.success(body ?: emptyList())
             } else {
                 val errorBody = response.errorBody()?.string()
-                android.util.Log.e(TAG, "Ошибка HTTP ${response.code()}: $errorBody")
-                Result.failure(Exception("Failed to load category products: ${response.code()} - $errorBody"))
+                Log.e(TAG, "Ошибка HTTP ${response.code()}: $errorBody")
+                Result.failure(kotlin.Exception("Failed to load category products: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Исключение в getProductsByCategory: ${e.message}", e)
+            Log.e(TAG, "Исключение в getProductsByCategory: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -102,7 +116,7 @@ class ProductsRepository {
     // data/repository/ProductsRepository.kt
     suspend fun getProductById(productId: String): Result<Product> {
         return try {
-            android.util.Log.d(TAG, "Запрос товара по ID (REST): $productId")
+            Log.d(TAG, "Запрос товара по ID (REST): $productId")
             val response = productsService.getProductById(idFilter = "eq.$productId")
 
             if (response.isSuccessful) {
@@ -110,18 +124,19 @@ class ProductsRepository {
                 if (body.isNotEmpty()) {
                     Result.success(body.first())
                 } else {
-                    Result.failure(Exception("Товар с ID '$productId' не найден"))
+                    Result.failure(kotlin.Exception("Товар с ID '$productId' не найден"))
                 }
             } else {
                 val errorBody = response.errorBody()?.string()
-                android.util.Log.e(TAG, "Ошибка getProductById: ${response.code()}, $errorBody")
-                Result.failure(Exception("HTTP ${response.code()}: $errorBody"))
+                Log.e(TAG, "Ошибка getProductById: ${response.code()}, $errorBody")
+                Result.failure(kotlin.Exception("HTTP ${response.code()}: $errorBody"))
             }
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "Исключение getProductById: ${e.message}", e)
+            Log.e(TAG, "Исключение getProductById: ${e.message}", e)
             Result.failure(e)
         }
     }
+
     suspend fun getProductsByIds(ids: List<String>): Result<List<Product>> {
         if (ids.isEmpty()) return Result.success(emptyList())
         return try {
@@ -131,10 +146,11 @@ class ProductsRepository {
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(response.errorBody()?.string()))
+                Result.failure(kotlin.Exception(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 }

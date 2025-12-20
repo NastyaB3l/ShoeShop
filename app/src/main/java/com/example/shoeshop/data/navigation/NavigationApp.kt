@@ -2,13 +2,16 @@ package com.example.shoeshop.data.navigation
 
 import EmailVerificationScreen
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.shoeshop.ui.screens.CartScreen
 import com.example.shoeshop.ui.screens.CategoryProductsScreen
 import com.example.shoeshop.ui.screens.CreateNewPasswordScreen
 import com.example.shoeshop.ui.screens.ForgotPasswordScreen
@@ -18,6 +21,7 @@ import com.example.shoeshop.ui.screens.ProductDetailScreen
 import com.example.shoeshop.ui.screens.RecoveryVerificationScreen
 import com.example.shoeshop.ui.screens.RegisterAccountScreen
 import com.example.shoeshop.ui.screens.SignInScreen
+import com.example.shoeshop.ui.viewmodel.CartViewModel
 import com.example.shoeshop.ui.viewmodel.HomeViewModel
 
 @Composable
@@ -127,7 +131,7 @@ fun NavigationApp(navController: NavHostController) {
                 onProductClick = { product ->
                     navController.navigate("product/${product.id}")
                 },
-                onCartClick = { /* ... */ },
+                onCartClick = { navController.navigate("cart") },
                 onSearchClick = { /* ... */ },
                 onSettingsClick = { },
                 onCategoryClick = { categoryName ->
@@ -179,6 +183,36 @@ fun NavigationApp(navController: NavHostController) {
                 onAddToCart = { /* TODO */ },
                 onToggleFavoriteInHome = { product ->
                     homeViewModel.toggleFavorite(product)
+                }
+            )
+        }
+        composable("cart") { backStackEntry ->
+            val homeBackStackEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("home")
+            }
+            val homeViewModel: HomeViewModel = viewModel(homeBackStackEntry)
+            val cartViewModel: CartViewModel = viewModel(backStackEntry)
+
+            val state by cartViewModel.uiState.collectAsStateWithLifecycle()
+
+            CartScreen(
+                items = state.items,
+                isLoading = state.isLoading,
+                onBackClick = { navController.popBackStack() },
+                onIncrement = { item ->
+                    cartViewModel.increment(item)
+                    homeViewModel.refreshCartFlags()
+                },
+                onDecrement = { item ->
+                    cartViewModel.decrement(item)
+                    homeViewModel.refreshCartFlags()
+                },
+                onRemove = { item ->
+                    cartViewModel.remove(item)
+                    homeViewModel.refreshCartFlags()
+                },
+                onCheckoutClick = {
+                    navController.navigate("checkout")
                 }
             )
         }

@@ -70,7 +70,7 @@
     <string name="Map">Map</string>
     <string name="LoyaltyCard">Loyalty Card</string>
 
-
+    <string name="hide">Hide</string>
     <string name="not_specified">Not specified</string>
     <string name="address">Address</string>
     <string name="phone_number">Phone number</string>
