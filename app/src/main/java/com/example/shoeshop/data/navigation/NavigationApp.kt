@@ -55,7 +55,7 @@ fun NavigationApp(navController: NavHostController) {
             EmailVerificationScreen(
                 email = emailArg,
                 onSignInClick = { navController.navigate("sign_in") },
-                onVerificationSuccess = { navController.navigate("home") }
+                onVerificationSuccess = { navController.navigate("sign_in") }
             )
         }
 
