@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.firebase.components)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     implementation(libs.gson)
     implementation(libs.navigation.compose)

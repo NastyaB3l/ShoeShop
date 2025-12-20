@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,17 @@ import com.example.shoeshop.R
 import com.example.shoeshop.data.model.Product
 import com.example.shoeshop.ui.theme.customTypography
 import com.example.shoeshop.ui.viewmodel.ProductDetailViewModel
+import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +49,7 @@ fun ProductDetailScreen(
 ) {
     val viewModel: ProductDetailViewModel = viewModel()
 
+
     LaunchedEffect(productId) {
         viewModel.loadProduct(productId)
     }
@@ -43,6 +57,13 @@ fun ProductDetailScreen(
     val product by viewModel.product.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val related by viewModel.related.collectAsState()
+    val selectedIndex by viewModel.selectedIndex.collectAsState()
+
+    val currentProduct: Product? = when {
+        related.isNotEmpty() && selectedIndex in related.indices -> related[selectedIndex]
+        else -> product
+    }
 
     Scaffold(
         topBar = {
@@ -116,17 +137,22 @@ fun ProductDetailScreen(
                 }
 
                 product != null -> {
-                    ProductDetailContent(
-                        product = product!!,
-                        onAddToCart = onAddToCart,
-                        onToggleFavorite = {
-                            // сначала обновляем деталку
-                            viewModel.toggleFavorite(product!!)
-                            // затем уведомляем Home
-                            onToggleFavoriteInHome(product!!)
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    currentProduct?.let { shown ->
+                        key(shown.id) {                      // ← добавили
+                            ProductDetailContent(
+                                product = shown,
+                                related = related,
+                                selectedIndex = selectedIndex,
+                                onSelectRelated = { index -> viewModel.selectRelated(index) },
+                                onAddToCart = onAddToCart,
+                                onToggleFavorite = {
+                                    viewModel.toggleFavorite(shown)
+                                    onToggleFavoriteInHome(shown)
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
                 }
 
                 else -> {
@@ -142,25 +168,59 @@ fun ProductDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ProductDetailContent(
     product: Product,
+    related: List<Product>,
+    selectedIndex: Int,
+    onSelectRelated: (Int) -> Unit,
     onAddToCart: (Product) -> Unit,
     onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isDescriptionExpanded by remember { mutableStateOf(false) }
+    var inCart by remember(product.id) { mutableStateOf(product.isInCart) }
+
+    // если product.isInCart изменился снаружи — обновляем локальное состояние
+    LaunchedEffect(product.isInCart) {
+        inCart = product.isInCart
+    }
 
     val categoryText = product.displayCategory
         ?: product.categoryId
         ?: "Категория не указана"
 
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val pagerState = rememberPagerState(
+        pageCount = { maxOf(1, related.size) }
+    )
+
+    // когда выбрали товар по мини‑карточке — пролистываем pager
+    LaunchedEffect(selectedIndex) {
+        if (related.isNotEmpty() && selectedIndex in related.indices) {
+            pagerState.scrollToPage(selectedIndex)
+        }
+    }
+
+    // когда пролистали pager свайпом — сообщаем наружу
+    LaunchedEffect(pagerState.currentPage) {
+        if (related.isNotEmpty()
+            && pagerState.currentPage in related.indices
+            && pagerState.currentPage != selectedIndex
+        ) {
+            onSelectRelated(pagerState.currentPage)
+        }
+    }
+
     Column(
         modifier = modifier
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
     ) {
-        // Заголовок + категория + цена
+        // 1. Название, категория, цена
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -175,18 +235,89 @@ fun ProductDetailContent(
 
             Text(
                 text = categoryText,
-                style = customTypography.displayMedium.copy(color = Color.Gray),
+                style = customTypography.labelMedium.copy(color = Color.Gray),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
                 text = product.getFormattedPrice(),
                 style = customTypography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
 
-        // Описание
+        // 2. Пейджер: блок с фото, который свайпается
+        HorizontalPager(
+            state = pagerState,
+            pageSize = PageSize.Fill,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+        ) { page ->
+            val current = when {
+                related.isNotEmpty() && page in related.indices -> related[page]
+                else -> product
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.aire_jordan_nike),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .align(Alignment.BottomCenter),
+                    contentScale = ContentScale.FillWidth
+                )
+
+            }
+        }
+
+        // 3. Мини‑карточки той же категории
+        if (related.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                related.forEachIndexed { index, item ->
+                    val isSelected = index == selectedIndex
+
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isSelected) Color(0xFFE3F2FD) else Color(0xFFF5F5F5)
+                            )
+                            .border(
+                                width = if (isSelected) 2.dp else 0.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .clickable {
+                                onSelectRelated(index)
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                    }
+                }
+            }
+        }
+
+        // 4. Описание
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -203,21 +334,28 @@ fun ProductDetailContent(
             )
 
             if (product.description.lines().size > 3 || product.description.length > 150) {
-                TextButton(
-                    onClick = { isDescriptionExpanded = !isDescriptionExpanded },
-                    modifier = Modifier.padding(bottom = 24.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(
-                        text = if (isDescriptionExpanded) "Скрыть" else "Подробнее",
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    TextButton(
+                        onClick = { isDescriptionExpanded = !isDescriptionExpanded }
+                    ) {
+                        Text(
+                            text = if (isDescriptionExpanded)
+                                stringResource(id = R.string.hide)
+                            else
+                                stringResource(id = R.string.moreDetails),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Нижняя панель: избранное + кнопка "в корзину"
+        // 5. Нижняя панель – как была у тебя
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -245,7 +383,8 @@ fun ProductDetailContent(
                 }
 
                 Button(
-                    onClick = { onAddToCart(product) },
+                    onClick = { onAddToCart(product)
+                        inCart = !inCart  },
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),
@@ -256,19 +395,25 @@ fun ProductDetailContent(
                     )
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.bag_2),
-                            contentDescription = "В корзину",
+                            painter = painterResource(
+                                id = if (inCart) R.drawable.bag_2 else R.drawable.bag_2
+                            ),
+                            contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier
                                 .size(24.dp)
                                 .padding(end = 8.dp)
                         )
                         Text(
-                            text = "Добавить в корзину",
+                            text = if (inCart)
+                                stringResource(R.string.addedToCart)
+                            else
+                                stringResource(R.string.AddToCart),
                             style = customTypography.labelLarge
                         )
                     }
@@ -277,3 +422,6 @@ fun ProductDetailContent(
         }
     }
 }
+
+
+
